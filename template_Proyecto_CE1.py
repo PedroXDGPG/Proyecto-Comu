@@ -22,10 +22,16 @@ import sounddevice as sd
 def transmisor(x_t):
     
     #x_t debe ser una lista con multiples array (caso de 3 señales) o una sola(caso del tono)
-    
-    
+    atono = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
+    a = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1"
+    b = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_2"
+    c = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_3"
     #Su codigo para el transmisor va aca
     
+
+
+    
+    ####################################
     s_t=x_t[0] #eliminar cuando se tenga solucion propuesta
     
     return s_t #note que s_t es una unica señal utilizando un unico array, NO una lista
@@ -58,11 +64,21 @@ def receptor(s_t_prima,f_rf):
 
 
 
-## Inicio de ejecucion ##
+################### Inicio de ejecucion #####################
+
 #Se da con ejemplo de tono, pasandolo por todo el sistema sin ningun cambio
 
+
+
+file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
+
 #leer tono desde archivo
-samplerate_tono, tono = wavfile.read("datos/tono.wav")
+samplerate_tono, tono = wavfile.read(file_path)
+
+
+print("Sample Rate:", samplerate_tono)
+print("Audio Data Shape:", tono.shape)
+
 
 #oir tono rescatado. Esta funcion sirve tambien como transductor de salida 
 #Note la importancia de la frecuencia de muestreo (samplerate), la cual es diferente a la frecuencia fm del tono.

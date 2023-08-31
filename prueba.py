@@ -1,38 +1,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
-class CanalFisico:
-    def _init_(self, desviacion_estandar=0.1):
-        self.desviacion_estandar = desviacion_estandar
 
-    def transmitir(self, senal):
-        # Simular el ruido gaussiano
-        ruido = np.random.normal(0, self.desviacion_estandar, len(senal))
-        
-        # Señal recibida es la suma de la señal original y el ruido
-        senal_recibida = senal + ruido
-        return senal_recibida
+class ChannelSimulator:
+    def __init__(self, noise_std=0.1):
+        self.noise_std = noise_std
 
+    def transmit_signal(self, signal):
+        noise = np.random.normal(0, self.noise_std, len(signal))
+        noisy_signal = signal + noise
+        return noisy_signal
+
+# Example usage
+if __name__ == "__main__":
+    original_signal = np.array([0.5, 0.8, 1.0, 0.7, 0.3])
     
-if __name__ == "_main_":
-    canal = CanalFisico(desviacion_estandar=0.1)
+    channel = ChannelSimulator(noise_std=0.1)
+    noisy_signal = channel.transmit_signal(original_signal)
     
-    # Generar una señal de prueba (por ejemplo, una señal sinusoidal)
-    tiempo = np.linspace(0, 1, num=100)
-    frecuencia = 5
-    senal_original = np.sin(2 * np.pi * frecuencia * tiempo)
-    
-    # Transmitir la señal a través del canal
-    senal_recibida = canal.transmitir(senal_original)
-    
-    # Comparar señales visualmente
-    plt.plot(tiempo, senal_original, label='Señal original')
-    plt.plot(tiempo, senal_recibida, label='Señal recibida')
-    plt.xlabel('Tiempo')
-    plt.ylabel('Amplitud')
+    plt.figure(figsize=(10, 6))
+    plt.plot(original_signal, label='Original Signal')
+    plt.plot(noisy_signal, label='Noisy Signal')
+    plt.xlabel('Time')
+    plt.ylabel('Amplitude')
+    plt.title('Original vs Noisy Signal')
     plt.legend()
+    plt.grid(True)
     plt.show()
-    
-    # Calcular la diferencia entre las señales
-    diferencia = np.abs(senal_original - senal_recibida)
-    promedio_diferencia = np.mean(diferencia)
-    print("Promedio de diferencia entre señales:", promedio_diferencia)

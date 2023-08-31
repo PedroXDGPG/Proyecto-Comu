@@ -10,7 +10,7 @@ Sistema de transmisión y recepción analógica
 """
 
 #importar bibliotecas utiles. De no tenerse alguna (import not found) se debe instalar, generalmente con pip
-import scipy.signal
+import scipy.signal as signal
 from scipy.io import wavfile 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,9 +23,9 @@ def transmisor(x_t):
     
     #x_t debe ser una lista con multiples array (caso de 3 señales) o una sola(caso del tono)
     atono = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
-    a = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1"
-    b = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_2"
-    c = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_3"
+    a = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1.wav"
+    b = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_2.wav"
+    c = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_3.wav"
     #Su codigo para el transmisor va aca
     
 
@@ -40,12 +40,12 @@ def canal(s_t):
     
     #Note que los parámetros mu (media) y sigma (desviacion) del ruido blanco Gaussiano deben cambiarse segun especificaciones
     mu=0;
-    sigma=0.001;
+    sigma=0.1;
     
     #Su codigo para el canal va aca. 
-    
-    s_t_prima=s_t #eliminar cuando se tenga solucion propuesta
-    
+    noise = np.random.normal(mu, sigma, len(s_t))#ruido blanco
+    s_t_prima = s_t + noise
+
     return s_t_prima
 
 
@@ -82,16 +82,17 @@ print("Audio Data Shape:", tono.shape)
 
 #oir tono rescatado. Esta funcion sirve tambien como transductor de salida 
 #Note la importancia de la frecuencia de muestreo (samplerate), la cual es diferente a la frecuencia fm del tono.
-sd.play(tono, samplerate_tono)
+
+#sd.play(tono, samplerate_tono)
 
 #Sobremuestreo para evitar problemas de aliasing (de necesitarse)
-resampling_factor = 4
-samples_new = len(tono) * resampling_factor
-samplerate_resampled = samplerate * resampling_factor
-print('Cambiando frecuencia de muestreo de '+str(samplerate)+' a '+str(samplerate_resampled))
-data_resampled=signal.resample(tono, samples_new).astype(np.int16)
-new_length=data_resampled.shape[0] / samplerate_resampled
-time_resampled = np.linspace(0., new_length, data_resampled.shape[0])
+#resampling_factor = 4
+#samples_new = len(tono) * resampling_factor
+#samplerate_resampled = samplerate * resampling_factor
+#print('Cambiando frecuencia de muestreo de '+str(samplerate)+' a '+str(samplerate_resampled))
+#data_resampled=signal.resample(tono, samples_new).astype(np.int16)
+#new_length=data_resampled.shape[0] / samplerate_resampled
+#time_resampled = np.linspace(0., new_length, data_resampled.shape[0])
 
 
 #agregar el tono a la lista X_t requerida por el transmisor
@@ -105,11 +106,12 @@ print("Se envia una lista con "+str(len(x_t))+" señales")
 #llamar funcion de transmisor
 s_t=transmisor(x_t)
 
+# llamar funcion que modela el canal
+s_t_prima = canal(s_t)
 
-#llamar funcion que modela el canal
-s_t_prima=canal(s_t)
+# llamar funcion de receptor
+m_t_reconstruida = receptor(s_t_prima, 1)#ojo que es f_rf de prueba
 
-#llamar funcion de receptor
-m_t_reconstruida=receptor(s_t_prima)
-
+# Sonido original con el ruido
+sd.play(m_t_reconstruida, samplerate_tono)
 

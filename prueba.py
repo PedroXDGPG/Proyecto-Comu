@@ -1,5 +1,5 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
 class CanalFisico:
     def _init_(self, desviacion_estandar=0.1):
         self.desviacion_estandar = desviacion_estandar

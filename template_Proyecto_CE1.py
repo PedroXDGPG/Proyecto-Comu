@@ -63,6 +63,17 @@ def receptor(s_t_prima,f_rf):
     return m_t_reconstruida
 
 
+def plot_signal_vs_time(signal, sample_rate):
+    #print(len(signal))
+    time = np.arange(len(signal)) / sample_rate
+    plt.figure(figsize=(10, 6))
+    plt.plot(time, signal)
+    plt.xlabel('Tiempo (s)')
+    plt.ylabel('Amplitud')
+    plt.title('Señal en función del tiempo')
+    plt.grid(True)
+    plt.show()
+
 
 ################### Inicio de ejecucion #####################
 
@@ -70,7 +81,7 @@ def receptor(s_t_prima,f_rf):
 
 
 
-file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
+file_path = "C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/tono.wav"
 
 #leer tono desde archivo
 samplerate_tono, tono = wavfile.read(file_path)
@@ -115,3 +126,6 @@ m_t_reconstruida = receptor(s_t_prima, 1)#ojo que es f_rf de prueba
 # Sonido original con el ruido
 sd.play(m_t_reconstruida, samplerate_tono)
 
+
+# Graficar la señal en función del tiempo con ruido
+plot_signal_vs_time(m_t_reconstruida, samplerate_tono)

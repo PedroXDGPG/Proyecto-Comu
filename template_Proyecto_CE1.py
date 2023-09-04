@@ -71,6 +71,31 @@ def plot_signal_vs_time(signal, sample_rate, duration):
     #plt.title('Señal en función del tiempo')
     plt.grid(True)
     plt.show()
+    
+    
+    
+def plot_frequency_spectrum(s_t_prima, samplerate_resampled):
+    n = len(s_t_prima)
+    
+    # Calcula la transformada de Fourier
+    fourier_result = np.fft.fft(s_t_prima)
+    
+    # Calcula el espectro de amplitud
+    amplitude_spectrum = np.abs(fourier_result)/n  # normalizar?
+    
+    # Calcula las frecuencias correspondientes
+    frequencies = np.fft.fftfreq(n, d=1/samplerate_resampled)
+    
+    # Grafica el espectro de frecuencia
+    plt.figure(figsize=(10, 6))
+    plt.plot(frequencies, amplitude_spectrum)
+    plt.xlabel('Frecuencia (Hz)')
+    plt.ylabel('Amplitud')
+    plt.grid(True)
+    plt.show()
+
+
+
 
 # Inicio de ejecución
 #TONO
@@ -134,5 +159,6 @@ plot_signal_vs_time(tono_resampled, samplerate_resampled, duration)
 # Graficar la señal con ruido en función del tiempo (0 a 0.007 segundos)
 plot_signal_vs_time(s_t_prima, samplerate_resampled, duration)
 
+# Graficar señal con ruido en el dominio de la frecuencia
+plot_frequency_spectrum(s_t_prima, samplerate_resampled)
 
-###asef;jas;dlf

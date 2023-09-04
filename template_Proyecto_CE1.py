@@ -133,3 +133,6 @@ plot_signal_vs_time(tono_resampled, samplerate_resampled, duration)
 
 # Graficar la señal con ruido en función del tiempo (0 a 0.007 segundos)
 plot_signal_vs_time(s_t_prima, samplerate_resampled, duration)
+
+
+###asef;jas;dlf

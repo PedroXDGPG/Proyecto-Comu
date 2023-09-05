@@ -8,6 +8,11 @@ Sistema de transmisión y recepción analógica
 
 @author: lcabrera
 """
+#            Medinila Robles Pedro Fabricio
+#            Montenegro Elizondo Brayan Ignacio
+#            Valverde Sotovando Joshua Ariel
+
+
 
 import scipy.signal as signal
 from scipy.io import wavfile 
@@ -30,7 +35,7 @@ def canal(s_t):
     # Note que los parámetros mu (media) y sigma (desviación) del ruido blanco Gaussiano deben cambiarse según especificaciones
     mu = 0
     #sigma = 0.1
-    sigma = 500.1 #Sigma de prueba para poder graficar
+    sigma = 500.1 #Sigma de prueba para poder graficar y que sea visible el ruido
     
     # Generar ruido gaussiano
     noise = np.random.normal(mu, sigma, len(s_t))
@@ -57,7 +62,7 @@ def plot_gaussian_noise(mu, sigma, num_samples):
     plt.plot(time, noise)
     plt.xlabel('Tiempo (muestras)')
     plt.ylabel('Amplitud')
-    #plt.title('Ruido Gaussiano en función del tiempo')
+    plt.title('Ruido Gaussiano en función del tiempo')
     plt.grid(True)
     plt.show()
 
@@ -68,11 +73,10 @@ def plot_signal_vs_time(signal, sample_rate, duration):
     plt.plot(time, signal[:num_samples])
     plt.xlabel('Tiempo (s)')
     plt.ylabel('Amplitud')
-    #plt.title('Señal en función del tiempo')
+    plt.title('Señal en función del tiempo')
     plt.grid(True)
     plt.show()
-    
-    
+     
     
 def plot_frequency_spectrum(s_t_prima, samplerate_resampled):
     n = len(s_t_prima)
@@ -93,9 +97,6 @@ def plot_frequency_spectrum(s_t_prima, samplerate_resampled):
     plt.ylabel('Amplitud')
     plt.grid(True)
     plt.show()
-
-
-
 
 # Inicio de ejecución
 #TONO
@@ -137,7 +138,6 @@ print("Reproduciendo señal con ruido:")
 sd.play(s_t_prima, samplerate=samplerate_resampled)
 sd.wait()
 
-
 # Llamar función de transmisor
 s_t = transmisor(x_t)
 
@@ -149,7 +149,7 @@ m_t_reconstruida = receptor(s_t_prima, 1)  # ojo que es f_rf de prueba
 
 # Graficar el ruido gaussiano en función del tiempo (0 a 0.007 segundos)
 #Se debe de cambiar a 1 segundo si se quiere ver o esuchar normal
-duration = 0.007  # segundos
+duration = 0.007  # Tiempo reducido
 
 plot_gaussian_noise(0, 0.1, len(s_t_prima))
 

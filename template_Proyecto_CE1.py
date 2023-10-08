@@ -34,8 +34,7 @@ def transmisor(x_t):
 def canal(s_t):
     # Note que los parámetros mu (media) y sigma (desviación) del ruido blanco Gaussiano deben cambiarse según especificaciones
     mu = 0
-    #sigma = 0.1
-    sigma = 500.1 #Sigma de prueba para poder graficar y que sea visible el ruido
+    sigma = 0.1
     
     # Generar ruido gaussiano
     noise = np.random.normal(mu, sigma, len(s_t))
@@ -78,29 +77,33 @@ def plot_signal_vs_time(signal, sample_rate, duration):
     plt.show()
      
     
-def plot_frequency_spectrum(s_t_prima, samplerate_resampled):
+import matplotlib.pyplot as plt
+import numpy as np
+
+def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     n = len(s_t_prima)
-    
+
     # Calcula la transformada de Fourier
     fourier_result = np.fft.fft(s_t_prima)
     
-    # Calcula el espectro de amplitud
-    amplitude_spectrum = np.abs(fourier_result)/n  # normalizar?
-    
     # Calcula las frecuencias correspondientes
     frequencies = np.fft.fftfreq(n, d=1/samplerate_resampled)
-    
-    # Grafica el espectro de frecuencia
-    plt.figure(figsize=(10, 6))
-    plt.plot(frequencies, amplitude_spectrum)
+
+    # Calcula la PSD
+    psd = np.abs(fourier_result)**2 / (n**2 * samplerate_resampled)
+
+    # Plot the PSD
+    plt.plot(frequencies, psd)
     plt.xlabel('Frecuencia (Hz)')
-    plt.ylabel('Amplitud')
+    plt.ylabel('PSD')
     plt.grid(True)
+    plt.tight_layout()
     plt.show()
+
 
 # Inicio de ejecución
 #TONO
-file_path = "C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/tono.wav"
+file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
 
 #AUDIO_1
 #file_path = "C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/vowel_2.wav"
@@ -160,5 +163,5 @@ plot_signal_vs_time(tono_resampled, samplerate_resampled, duration)
 plot_signal_vs_time(s_t_prima, samplerate_resampled, duration)
 
 # Graficar señal con ruido en el dominio de la frecuencia
-plot_frequency_spectrum(s_t_prima, samplerate_resampled)
+plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
 

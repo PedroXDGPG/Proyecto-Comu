@@ -80,6 +80,24 @@ def plot_signal_vs_time(signal, sample_rate, duration):
 import matplotlib.pyplot as plt
 import numpy as np
 
+def calculate_bandwidth(frequencies, psd, threshold=0.9):
+    # Calculate cumulative sum of PSD
+    cumulative_psd = np.cumsum(psd)
+    
+    # Normalize cumulative PSD
+    cumulative_psd /= cumulative_psd[-1]
+    
+    # Find the index where cumulative power exceeds the threshold
+    bandwidth_index = np.argmax(cumulative_psd >= threshold)
+    
+    # Get the corresponding frequencies
+    lower_frequency = frequencies[bandwidth_index]
+    upper_frequency = frequencies[-bandwidth_index]
+    
+    bandwidth = upper_frequency - lower_frequency
+    
+    return bandwidth
+
 def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     n = len(s_t_prima)
 
@@ -98,15 +116,24 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     plt.ylabel('PSD')
     plt.grid(True)
     plt.tight_layout()
+    
+    # Calculate and print the bandwidth
+    bandwidth = calculate_bandwidth(frequencies, psd)
+    print(f"The estimated bandwidth is {bandwidth} Hz.")
+    
     plt.show()
 
 
 # Inicio de ejecución
 #TONO
-file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
+#file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
 
 #AUDIO_1
-#file_path = "C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/vowel_2.wav"
+file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1.wav"
+
+#Vowel1 BW de 363hz aprox
+#Vowel2 BW de 430hz aprox
+#Vowel3 BW de 1170hz aprox
 
 #leer tono desde archivo
 samplerate_tono, tono = wavfile.read(file_path)

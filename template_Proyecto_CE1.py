@@ -126,11 +126,11 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
 
 # Inicio de ejecución
 #TONO
-#file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
+file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
 
 #AUDIO_1
-file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1.wav"
-
+#file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1.wav"
+#BILATERAL
 #Vowel1 BW de 363hz aprox
 #Vowel2 BW de 430hz aprox
 #Vowel3 BW de 1170hz aprox

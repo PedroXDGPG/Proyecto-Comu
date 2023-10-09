@@ -22,14 +22,36 @@ import sounddevice as sd
 
 # Definición de 3 bloques principales: TX, canal y RX
 
-def transmisor(x_t):
+def modSSB(x_t, f_c, fs):
+    t = np.arange(0, len(x_t)/fs, 1/fs)  # Generar vector de tiempo
+    
+    # Modulación SSB
+    i_t = x_t * np.cos(2 * np.pi * f_c * t)  # Señal en banda inferior
+    q_t = -x_t * np.sin(2 * np.pi * f_c * t)  # Señal en banda superior
+    
+    s_t = i_t + q_t  # Sumar ambas señales
+    
+    return s_t
+
+def transmisorSSB(x_t, f_c, fs):
     # x_t debe ser una lista con múltiples arrays (caso de 3 señales) o una sola (caso del tono)
     
     # Su código para el transmisor va aquí
-    
-    s_t = x_t[0]  # eliminar cuando se tenga solución propuesta
+
+    s_mod = modSSB(x_t[0], f_c, fs)
+    s_t = s_mod  # eliminar cuando se tenga solución propuesta
     
     return s_t  # note que s_t es una única señal utilizando un único array, NO una lista
+
+
+#TRANSMISOR SIMPLE
+def transmisor(x_t):
+    # x_t debe ser una lista con múltiples arrays (caso de 3 señales) o una sola (caso del tono)
+    s_t = x_t[0]  # eliminar cuando se tenga solución propuesta
+
+    return s_t
+
+
 
 def canal(s_t):
     # Note que los parámetros mu (media) y sigma (desviación) del ruido blanco Gaussiano deben cambiarse según especificaciones
@@ -124,6 +146,11 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     plt.show()
 
 
+
+
+
+
+
 # Inicio de ejecución
 #TONO
 file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
@@ -150,7 +177,14 @@ x_t = []  # solo para ejemplo, crear lista con el mismo tono 3 veces
 x_t.append(tono_resampled)
 x_t.append(tono_resampled)
 x_t.append(tono_resampled)
-#print("Se envía una lista con " + str(len(x_t)) + " señales")
+print("Se envía una lista con " + str(len(x_t)) + " señales")
+
+
+
+
+
+##############################################################INICIO SIMULACIÓN
+###### -MUESTRA DE AUDIOS
 
 # Llamar función de transmisor
 s_t = transmisor(x_t)
@@ -158,7 +192,7 @@ s_t = transmisor(x_t)
 # Llamar función que modela el canal
 s_t_prima = canal(s_t)
 
-# Sonido original
+# Sonido original########################################
 print("Reproduciendo señal original:")
 sd.play(tono_resampled, samplerate=samplerate_resampled)
 sd.wait()
@@ -167,9 +201,12 @@ sd.wait()
 print("Reproduciendo señal con ruido:")
 sd.play(s_t_prima, samplerate=samplerate_resampled)
 sd.wait()
+#########################################################
 
-# Llamar función de transmisor
-s_t = transmisor(x_t)
+###MODULACION
+
+# Llamar función de transmisor con portadora de 5 kHz
+s_t = transmisorSSB(x_t, 2000, samplerate_resampled)
 
 # Llamar función que modela el canal
 s_t_prima = canal(s_t)
@@ -177,11 +214,14 @@ s_t_prima = canal(s_t)
 # Llamar función de receptor
 m_t_reconstruida = receptor(s_t_prima, 1)  # ojo que es f_rf de prueba
 
+#CANAL
 # Graficar el ruido gaussiano en función del tiempo (0 a 0.007 segundos)
-#Se debe de cambiar a 1 segundo si se quiere ver o esuchar normal
+#Se debe de cambiar a 1 segundo si se quiere ver o escuchar normal
 duration = 0.007  # Tiempo reducido
 
-plot_gaussian_noise(0, 0.1, len(s_t_prima))
+plot_gaussian_noise(0, 0.1, len(s_t_prima))#Ruido
+
+
 
 # Graficar la señal original en función del tiempo (0 a 0.007 segundos)
 plot_signal_vs_time(tono_resampled, samplerate_resampled, duration)
@@ -189,6 +229,32 @@ plot_signal_vs_time(tono_resampled, samplerate_resampled, duration)
 # Graficar la señal con ruido en función del tiempo (0 a 0.007 segundos)
 plot_signal_vs_time(s_t_prima, samplerate_resampled, duration)
 
+
+
+
+##########################################################################################
+#VER LA MODULACION
+def plot_mod(signal1, signal2, sample_rate, duration):
+    num_samples = int(sample_rate * duration)
+    time = np.arange(num_samples) / sample_rate
+    plt.figure(figsize=(10, 6))
+    plt.plot(time, signal1[:num_samples], label='tono_resampled', color='blue')
+    plt.plot(time, signal2[:num_samples], label='s_t_prima', color='red')
+    plt.xlabel('Tiempo (s)')
+    plt.ylabel('Amplitud')
+    plt.title('Señal en función del tiempo')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+plot_mod(tono_resampled, s_t_prima, samplerate_resampled, duration)
+########################################################################################
+
+
+
 # Graficar señal con ruido en el dominio de la frecuencia
 plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
+##########################################################################
+
+
 

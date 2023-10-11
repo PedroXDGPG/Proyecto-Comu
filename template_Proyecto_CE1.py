@@ -12,8 +12,6 @@ Sistema de transmisión y recepción analógica
 #            Montenegro Elizondo Brayan Ignacio
 #            Valverde Sotovando Joshua Ariel
 
-
-
 import scipy.signal as signal
 from scipy.io import wavfile 
 import numpy as np
@@ -29,7 +27,7 @@ def modSSB(x_t, f_c, fs):
     i_t = x_t * np.cos(2 * np.pi * f_c * t)  # Señal en banda inferior
     q_t = -x_t * np.sin(2 * np.pi * f_c * t)  # Señal en banda superior
     
-    s_t = i_t + q_t  # Sumar ambas señales
+    s_t = i_t + q_t  
     
     return s_t
 
@@ -39,7 +37,7 @@ def transmisorSSB(x_t, f_c, fs):
     # Su código para el transmisor va aquí
 
     s_mod = modSSB(x_t[0], f_c, fs)
-    s_t = s_mod  # eliminar cuando se tenga solución propuesta
+    s_t = s_mod  
     
     return s_t  # note que s_t es una única señal utilizando un único array, NO una lista
 
@@ -97,10 +95,6 @@ def plot_signal_vs_time(signal, sample_rate, duration):
     plt.title('Señal en función del tiempo')
     plt.grid(True)
     plt.show()
-     
-    
-import matplotlib.pyplot as plt
-import numpy as np
 
 def calculate_bandwidth(frequencies, psd, threshold=0.9):
     # Calculate cumulative sum of PSD
@@ -141,7 +135,7 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     
     # Calculate and print the bandwidth
     bandwidth = calculate_bandwidth(frequencies, psd)
-    print(f"The estimated bandwidth is {bandwidth} Hz.")
+    print(f"Ancho de banda Bilateral: {bandwidth} Hz.")
     
     plt.show()
 
@@ -157,6 +151,13 @@ file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav
 
 #AUDIO_1
 #file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1.wav"
+
+#AUDIO_2
+#file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_2.wav"
+
+#AUDIO_3
+#file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_3.wav"
+
 #BILATERAL
 #Vowel1 BW de 363hz aprox
 #Vowel2 BW de 430hz aprox
@@ -205,8 +206,8 @@ sd.wait()
 
 ###MODULACION
 
-# Llamar función de transmisor con portadora de 5 kHz
-s_t = transmisorSSB(x_t, 2000, samplerate_resampled)
+# Llamar función de transmisor con portadora de 10 kHz
+s_t = transmisorSSB(x_t, 10000, samplerate_resampled)
 
 # Llamar función que modela el canal
 s_t_prima = canal(s_t)
@@ -217,7 +218,7 @@ m_t_reconstruida = receptor(s_t_prima, 1)  # ojo que es f_rf de prueba
 #CANAL
 # Graficar el ruido gaussiano en función del tiempo (0 a 0.007 segundos)
 #Se debe de cambiar a 1 segundo si se quiere ver o escuchar normal
-duration = 0.007  # Tiempo reducido
+duration = 0.005  # Tiempo reducido
 
 plot_gaussian_noise(0, 0.1, len(s_t_prima))#Ruido
 
@@ -252,7 +253,7 @@ plot_mod(tono_resampled, s_t_prima, samplerate_resampled, duration)
 
 
 
-# Graficar señal con ruido en el dominio de la frecuencia
+# Graficar señal del transmisor con ruido en el dominio de la frecuencia
 plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
 ##########################################################################
 

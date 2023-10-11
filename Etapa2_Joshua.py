@@ -42,12 +42,28 @@ def transmisorSSB(x_t, f_c, fs):
     return s_t  # note que s_t es una única señal utilizando un único array, NO una lista
 
 
-#TRANSMISOR SIMPLE                    NO HACEN FALTA DOS TRANSMISORES, SOLO UNO HACE EL TRABAJO 
+
+#TRANSMISOR SIMPLE                    
 def transmisor(x_t):
      #x_t debe ser una lista con múltiples arrays (caso de 3 señales) o una sola (caso del tono)
     s_t = x_t[0]  # eliminar cuando se tenga solución propuesta
 
     return s_t
+
+def multiplexar_fdm(x_t, f_c, fs):
+    señales_moduladas = []
+
+    for i in range(len(x_t)):
+        señal_modulada = modSSB(x_t[i], f_c[i], fs)
+        señales_moduladas.append(señal_modulada)
+
+    s_t_multiplex = np.zeros(max(len(señal) for señal in señales_moduladas))  # Crear un array de ceros con la longitud máxima
+
+    for señal_modulada in señales_moduladas:
+        s_t_multiplex[:len(señal_modulada)] += señal_modulada
+    
+    return s_t_multiplex
+
 
 
 
@@ -220,11 +236,13 @@ vowel_3_resampled = signal.resample(vowel_3, samples_new_3).astype(np.int16)
 x_t = []  # Inicialmente, la lista está vacía
 
 # Pedir al usuario que ingrese las señales
-input_str = input("Ingrese las señales (por ejemplo, '1' para una, '1 2 3' para tres señales separadas por espacios): ")
+print("Las opciones para la entrada de la transmisión son las siguientes:")
 print("0. Tono")
 print("1. Vowel 1")
 print("2. Vowel 2")
 print("3. Vowel 3")
+input_str = input("Ingrese las señales (por ejemplo, '0' para una sola señal o '1 2 3' para tres señales separadas por espacios): ")
+
 seleccion = input_str.split()  # Divide la entrada en una lista de números
 
 for opcion in seleccion:
@@ -337,33 +355,13 @@ def plot_mod(signal1, signal2, sample_rate, duration):
 
 
 
-# ----------------------Codigo nuevo------------------------------------
-# Crear tres frecuencias de portadora distintas
-
-
-f_c = [5000, 10000, 15000]
-
-
-señales_moduladas = []
-
-for i in range(len(x_t)):
-    señal_modulada = modSSB(x_t[i], f_c[i], samplerate_resampled)
-    señales_moduladas.append(señal_modulada)
-
-
-
-# Sumar las tres señales moduladas con diferentes frecuencias de portadora
-#senal_resultante = np.sum(señales_moduladas, axis=0)                       # ESTO ME DA ERROR
-
-señal_resultante = np.zeros(max(len(señal) for señal in señales_moduladas))  # Crear un array de ceros con la longitud máxima
-
-for señal_modulada in señales_moduladas:
-    señal_resultante[:len(señal_modulada)] += señal_modulada
-
 
 #---------------------- Graficar en PSD-------------------
+f_c = [5000, 10000, 15000]   # f_c debe ser una lista de 3 frecuencias, aunque solo se vaya a modular un numero en x_t
+#f_c = 5000
+resultado = multiplexar_fdm(x_t, f_c, samplerate_resampled)
 
+plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
 
-#plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
+plot_frequency_vs_psd(resultado, samplerate_resampled)
 
-plot_frequency_vs_psd(señal_resultante, samplerate_resampled)

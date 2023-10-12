@@ -163,7 +163,7 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     # Plot the PSD
     plt.plot(frequencies, psd)
     plt.xlabel('Frecuencia (Hz)')
-    plt.ylabel('PSD')
+    plt.ylabel('PSD (dBFS^2)/Hz)')
     plt.grid(True)
     plt.tight_layout()
     
@@ -310,8 +310,8 @@ plot_frequency_vs_psd(salidaTX, samplerate_resampled)
 
 ###MODULACION un caso
 
-# Llamar función de transmisor con portadora de 10 kHz
-#s_t = transmisorSSB(x_t, 10000, samplerate_resampled)
+# Llamar función de transmisor con portadora de 5 kHz
+#s_t = transmisorSSB(x_t, 5000, samplerate_resampled)
 
 # Llamar función que modela el canal
 #s_t_prima = canal(s_t)

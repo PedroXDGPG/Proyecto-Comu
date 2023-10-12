@@ -24,7 +24,7 @@ from scipy.signal import butter, filtfilt
 #---------------------- TX -------------------------
 def multiplexar_fdm(s_m):
     max_len = max(len(señal) for señal in s_m)
-    s_t_multiplex = np.zeros(max_len, dtype=complex)  # Set data type to complex
+    s_t_multiplex = np.zeros(max_len, dtype=complex)  
 
     for señal_modulada in s_m:
         s_t_multiplex[:len(señal_modulada)] += señal_modulada
@@ -49,9 +49,9 @@ def transmisorSSB(x_t, f_c, fs):
     #Modulación respecto a cada f_c
     for i in range(len(x_t)):
         señal_modulada = modSSB(x_t[i], f_c[i], fs)
-        plot_frequency_vs_psd(señal_modulada, fs)
+        #plot_frequency_vs_psd(señal_modulada, fs)
         señal_modulada =filtro_pasabajo(señal_modulada, f_c[i], fs)
-        plot_frequency_vs_psd(señal_modulada, fs)
+        #plot_frequency_vs_psd(señal_modulada, fs)
         señales_moduladas.append(señal_modulada)
 
     # Su código para el transmisor va aquí
@@ -64,7 +64,7 @@ def filtro_pasabajo(s_t_prima, fcorte, fs):
     t = np.linspace(0, 1, fs, endpoint=False)
     signal_input = s_t_prima
 
-    # Calculate the Discrete Fourier Transform (DFT)
+    # T F
     signal_fft = np.fft.fft(s_t_prima)
     frequencies = np.fft.fftfreq(len(s_t_prima), 1/fs)
     filter_mask = np.where((frequencies >= -fcorte) & (frequencies <= fcorte), 1, 0)
@@ -308,51 +308,7 @@ plot_frequency_vs_psd(salidaTX, samplerate_resampled)
 #sd.wait()
 #########################################################
 
-###MODULACION un caso
-
-# Llamar función de transmisor con portadora de 5 kHz
-#s_t = transmisorSSB(x_t, 5000, samplerate_resampled)
-
-# Llamar función que modela el canal
-#s_t_prima = canal(s_t)
-
-# Llamar función de receptor
-#m_t_reconstruida = receptor(s_t_prima, 1)  # ojo que es f_rf de prueba
-
-#CANAL
-# Graficar el ruido gaussiano en función del tiempo (0 a 0.007 segundos)
-#Se debe de cambiar a 1 segundo si se quiere ver o escuchar normal
-duration = 0.005  # Tiempo reducido
-
-#plot_gaussian_noise(0, 0.1, len(s_t_prima))#Ruido
 
 
-
-# Graficar la señal original en función del tiempo (0 a 0.007 segundos)
-plot_signal_vs_time(tono_resampled, samplerate_resampled, duration)
-
-# Graficar la señal con ruido en función del tiempo (0 a 0.007 segundos)
-#plot_signal_vs_time(s_t_prima, samplerate_resampled, duration)
-
-
-
-
-##########################################################################################
-#VER LA MODULACION
-def plot_mod(signal1, signal2, sample_rate, duration):
-    num_samples = int(sample_rate * duration)
-    time = np.arange(num_samples) / sample_rate
-    plt.figure(figsize=(10, 6))
-    plt.plot(time, signal1[:num_samples], label='Sonido_resampled', color='blue')
-    plt.plot(time, signal2[:num_samples], label='s_t_prima', color='red')
-    plt.xlabel('Tiempo (s)')
-    plt.ylabel('Amplitud (dBFS)')
-    plt.title('Señal en función del tiempo')
-    plt.grid(True)
-    plt.legend()
-    plt.show()
-
-#plot_mod(tono_resampled, s_t_prima, samplerate_resampled, duration)
-########################################################################################
 
 

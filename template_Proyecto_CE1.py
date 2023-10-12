@@ -17,14 +17,14 @@ from scipy.io import wavfile
 import numpy as np
 import matplotlib.pyplot as plt
 import sounddevice as sd
-
+from scipy.signal import butter, filtfilt
 # Definición de 3 bloques principales: TX, canal y RX
 
 
 #---------------------- TX -------------------------
 def multiplexar_fdm(s_m):
-
-    s_t_multiplex = np.zeros(max(len(señal) for señal in s_m))  # Crear un array de ceros con la longitud máxima
+    max_len = max(len(señal) for señal in s_m)
+    s_t_multiplex = np.zeros(max_len, dtype=complex)  # Set data type to complex
 
     for señal_modulada in s_m:
         s_t_multiplex[:len(señal_modulada)] += señal_modulada
@@ -49,14 +49,34 @@ def transmisorSSB(x_t, f_c, fs):
     #Modulación respecto a cada f_c
     for i in range(len(x_t)):
         señal_modulada = modSSB(x_t[i], f_c[i], fs)
+        plot_frequency_vs_psd(señal_modulada, fs)
+        señal_modulada =filtro_pasabajo(señal_modulada, f_c[i], fs)
+        plot_frequency_vs_psd(señal_modulada, fs)
         señales_moduladas.append(señal_modulada)
 
     # Su código para el transmisor va aquí
     s_TX = multiplexar_fdm(señales_moduladas)
-
     
     return s_TX  # note que s_t es una única señal utilizando un único array, NO una lista
 
+def filtro_pasabajo(s_t_prima, fcorte, fs):
+
+    t = np.linspace(0, 1, fs, endpoint=False)
+    signal_input = s_t_prima
+
+    # Calculate the Discrete Fourier Transform (DFT)
+    frequencies = np.fft.fftfreq(len(t), 1/fs)
+    spectrum = np.fft.fft(signal_input)
+
+    # Apply ideal low-pass filter in frequency domain
+    cutoff_index = int(fcorte * len(t) / fs)
+    spectrum_filtered = np.copy(spectrum)
+    spectrum_filtered[cutoff_index:-cutoff_index] = 0
+
+    # Calculate inverse DFT to get filtered signal
+    s_t_filtrada = np.fft.ifft(spectrum_filtered)
+
+    return s_t_filtrada
 
 #TRANSMISOR SIMPLE
 def transmisor(x_t):
@@ -64,7 +84,6 @@ def transmisor(x_t):
     s_t = x_t[0]  # eliminar cuando se tenga solución propuesta
 
     return s_t
-
 
 #---------------------- Canal -------------------------
 def canal(s_t):

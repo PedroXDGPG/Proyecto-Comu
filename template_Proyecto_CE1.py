@@ -65,16 +65,13 @@ def filtro_pasabajo(s_t_prima, fcorte, fs):
     signal_input = s_t_prima
 
     # Calculate the Discrete Fourier Transform (DFT)
-    frequencies = np.fft.fftfreq(len(t), 1/fs)
-    spectrum = np.fft.fft(signal_input)
+    signal_fft = np.fft.fft(s_t_prima)
+    frequencies = np.fft.fftfreq(len(s_t_prima), 1/fs)
+    filter_mask = np.where((frequencies >= -fcorte) & (frequencies <= fcorte), 1, 0)
+    filtered_signal_fft = signal_fft * filter_mask
 
-    # Apply ideal low-pass filter in frequency domain
-    cutoff_index = int(fcorte * len(t) / fs)
-    spectrum_filtered = np.copy(spectrum)
-    spectrum_filtered[cutoff_index:-cutoff_index] = 0
+    s_t_filtrada = np.fft.ifft(filtered_signal_fft)
 
-    # Calculate inverse DFT to get filtered signal
-    s_t_filtrada = np.fft.ifft(spectrum_filtered)
 
     return s_t_filtrada
 

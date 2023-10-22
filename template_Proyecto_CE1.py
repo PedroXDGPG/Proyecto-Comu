@@ -17,6 +17,7 @@ from scipy.io import wavfile
 import numpy as np
 import matplotlib.pyplot as plt
 import sounddevice as sd
+from scipy.signal import resample
 from scipy.signal import butter, filtfilt
 # Definición de 3 bloques principales: TX, canal y RX
 
@@ -41,6 +42,28 @@ def modSSB(x_t, f_c, fs):
     s_t = i_t + q_t  
     
     return s_t
+
+
+
+def demodSSB(s_t, f_c, fs, resampling_factor=5):
+    t = np.arange(0, len(s_t)/fs, 1/fs)  # Generar vector de tiempo
+    
+    # Generar la señal de portadora de la banda inferior
+    i_t = np.cos(2 * np.pi * f_c * t)  # Señal en banda inferior
+    
+    # Demodulación de la banda inferior
+    i_demod = s_t * i_t
+    
+    # Filtrar la señal demodulada
+    i_demod_filtrada = filtro_pasabajo(i_demod, f_c, fs)
+    
+    # Realizar resampling
+    i_demod_resampled = resample(i_demod_filtrada, len(i_demod_filtrada) // resampling_factor)
+    
+    return i_demod_resampled
+
+
+
 
 def transmisorSSB(x_t, f_c, fs):
     # x_t debe ser una lista con múltiples arrays (caso de 3 señales) o una sola (caso del tono)
@@ -173,10 +196,14 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     
     plt.show()
 
+
+#file_path1 = "C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/vowel_1.wav"
+#vowel1 = wavfile.read(file_path1)
+
 #---------------------- Audios -------------------------
 def ini_audio():
     #Ruta de archivos
-    path="F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/"
+    path="C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/"
     #TONO
     file_path_tono = path+"tono.wav"
 
@@ -280,12 +307,31 @@ x_t, samplerate_resampled, tono_resampled = ini_audio()
 f_t = [5000, 10000, 15000]   # f_t debe ser una lista de 3 frecuencias de transmision
 
 salidaTX = transmisorSSB(x_t, f_t, samplerate_resampled)
+s_t = transmisor(x_t)
 
 # Graficar señal del transmisor con ruido en el dominio de la frecuencia
 #plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
 
 plot_frequency_vs_psd(salidaTX, samplerate_resampled)
+f_c = 5000
+s_t = transmisor(x_t)
+# Suponiendo que x_t_demod contiene las señales demoduladas
+duration= 0.007
+# Graficar la señal demodulada en el tiempo
 
+
+
+
+x_t_demod = demodSSB(salidaTX, f_c, samplerate_resampled)
+plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
+
+##Señal original
+#plot_signal_vs_time(, samplerate_resampled, duration)
+
+
+# Graficar la frecuencia vs PSD
+#plot_frequency_vs_psd(i_t_demod, fs)
+#plot_frequency_vs_psd(q_t_demod, fs)
 
 
 

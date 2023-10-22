@@ -358,3 +358,42 @@ plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
 
 
 
+
+# CODIGO NUEVO ETAPA 3 JOSHUA VALVERDE---------------------------------------------------------
+
+
+
+fc=30000   # ESTO TIENE QUE PODER ESCOGERSE ENTRE 10k, 20k y 30k
+Fif=3000   # en 2500 o menos parece haber aliasing
+
+#señal de tiempo
+t = np.linspace(0, 1, samplerate_resampled, endpoint=False)
+
+# oscilador local
+oscilador_local_largo = np.cos(2 * np.pi * (fc - Fif) * t) 
+oscilador_local = oscilador_local_largo[:len(salidaTX)]  # nay que recortarlo para que tenga el tamaño de salidaTX
+
+
+
+
+# el mixer simplemente multiplica la señal recibida por el oscilador local 
+salida_mixer = np.multiply(salidaTX, oscilador_local)
+
+plot_frequency_vs_psd(salida_mixer, samplerate_resampled)
+
+
+
+# aplicar filtro para solo tener la señal que quiero
+señal_demultiplexada= filtro_pasabajo(salida_mixer, Fif, samplerate_resampled)
+
+plot_frequency_vs_psd(señal_demultiplexada, samplerate_resampled)
+
+
+
+# NOTA IMPORTANTE: HAY PERDIDA DE GANANCIA, TENGO QUE AVERIGUAR POR QUE Y AMPLIFICAR
+# SE PIERTE AMPLITUD LUEGO DEL MIXER
+
+
+
+
+

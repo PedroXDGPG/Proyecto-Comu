@@ -304,7 +304,7 @@ x_t, samplerate_resampled, tono_resampled = ini_audio()
 
 
 #---------------------- Graficar en PSD-------------------
-f_t = [5000, 10000, 15000]   # f_t debe ser una lista de 3 frecuencias de transmision
+f_t = [10000, 20000, 30000]  # f_t debe ser una lista de 3 frecuencias de transmision
 
 salidaTX = transmisorSSB(x_t, f_t, samplerate_resampled)
 s_t = transmisor(x_t)

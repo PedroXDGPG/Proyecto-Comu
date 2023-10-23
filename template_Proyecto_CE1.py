@@ -129,6 +129,34 @@ def receptor(s_t_prima, f_rf):
     
     return m_t_reconstruida
 
+def demultiplexar_y_amplificar(salidaTX,Frf):
+    
+    Fif=3000   # en 2500 o menos parece haber aliasing
+   
+    # Señal de tiempo
+    t = np.linspace(0, 1, samplerate_resampled, endpoint=False)
+
+
+    # Oscilador local
+    oscilador_local_largo = np.cos(2 * np.pi * (Frf - Fif) * t)
+    oscilador_local = oscilador_local_largo[:len(salidaTX)]  # Recortar para que tenga el tamaño de salidaTX
+
+    # El mixer multiplica la señal recibida por el oscilador local
+    salida_mixer = np.multiply(salidaTX, oscilador_local)
+
+    # Aplicar filtro para solo tener la señal que se quiere
+    señal_demultiplexada = filtro_pasabajo(salida_mixer, Fif, samplerate_resampled)
+
+    # Amplificar la señal demultiplexada
+    demultiplexada_amplificada = np.multiply(2, señal_demultiplexada)  # Amplificar por 2
+
+    # Devolver la señal demultiplexada amplificada
+    return demultiplexada_amplificada
+
+
+
+
+
 #---------------------- Plots -------------------------
 def plot_gaussian_noise(mu, sigma, num_samples):
     noise = np.random.normal(mu, sigma, num_samples)
@@ -309,6 +337,16 @@ f_t = [10000, 20000, 30000]  # f_t debe ser una lista de 3 frecuencias de transm
 salidaTX = transmisorSSB(x_t, f_t, samplerate_resampled)
 s_t = transmisor(x_t)
 
+
+
+
+# RESULTADO DE LA DEMULTIPLEXACION
+#f_t = [10000, 20000, 30000]
+señal_demultiplexada = demultiplexar_y_amplificar(salidaTX,30000)
+
+plot_frequency_vs_psd(señal_demultiplexada, samplerate_resampled)
+
+
 # Graficar señal del transmisor con ruido en el dominio de la frecuencia
 #plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
 
@@ -359,39 +397,7 @@ plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
 
 
 
-# CODIGO NUEVO ETAPA 3 JOSHUA VALVERDE---------------------------------------------------------
 
-
-
-fc=30000   # ESTO TIENE QUE PODER ESCOGERSE ENTRE 10k, 20k y 30k
-Fif=3000   # en 2500 o menos parece haber aliasing
-
-#señal de tiempo
-t = np.linspace(0, 1, samplerate_resampled, endpoint=False)
-
-# oscilador local
-oscilador_local_largo = np.cos(2 * np.pi * (fc - Fif) * t) 
-oscilador_local = oscilador_local_largo[:len(salidaTX)]  # nay que recortarlo para que tenga el tamaño de salidaTX
-
-
-
-
-# el mixer simplemente multiplica la señal recibida por el oscilador local 
-salida_mixer = np.multiply(salidaTX, oscilador_local)
-
-plot_frequency_vs_psd(salida_mixer, samplerate_resampled)
-
-
-
-# aplicar filtro para solo tener la señal que quiero
-señal_demultiplexada= filtro_pasabajo(salida_mixer, Fif, samplerate_resampled)
-
-plot_frequency_vs_psd(señal_demultiplexada, samplerate_resampled)
-
-
-
-# NOTA IMPORTANTE: HAY PERDIDA DE GANANCIA, TENGO QUE AVERIGUAR POR QUE Y AMPLIFICAR
-# SE PIERTE AMPLITUD LUEGO DEL MIXER
 
 
 

@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import sounddevice as sd
 from scipy.signal import resample
 from scipy.signal import butter, filtfilt
+from scipy.signal import hilbert
 # Definición de 3 bloques principales: TX, canal y RX
 
 
@@ -45,23 +46,24 @@ def modSSB(x_t, f_c, fs):
 
 
 
-def demodSSB(s_t, f_c, fs, resampling_factor=5):
+
+
+def demodSSB(s_t, f_c, fs):
     t = np.arange(0, len(s_t)/fs, 1/fs)  # Generar vector de tiempo
-    
-    # Generar la señal de portadora de la banda inferior
-    i_t = np.cos(2 * np.pi * f_c * t)  # Señal en banda inferior
-    
-    # Demodulación de la banda inferior
+
+#Generar la señal de portadora de la banda inferior
+    i_t = -np.sin(2 * np.pi * f_c * t)  # Señal en banda inferior
+
+#Demodulación de la banda inferior
     i_demod = s_t * i_t
     
-    # Filtrar la señal demodulada
-    i_demod_filtrada = filtro_pasabajo(i_demod, f_c, fs)
-    
-    # Realizar resampling
-    i_demod_resampled = resample(i_demod_filtrada, len(i_demod_filtrada) // resampling_factor)
-    
-    return i_demod_resampled
+#Filtrar la señal demodulada (puedes usar un filtro pasabajo aquí)
+    i_demod_filtrada = filtro_pasabajo1(i_demod, f_c + 10000, fs)
 
+#Realizar resampling
+    i_demod_resampled = resample(i_demod_filtrada, len(i_demod_filtrada))
+
+    return i_demod_resampled
 
 
 
@@ -83,20 +85,104 @@ def transmisorSSB(x_t, f_c, fs):
     return s_TX  # note que s_t es una única señal utilizando un único array, NO una lista
 
 def filtro_pasabajo(s_t_prima, fcorte, fs):
-
     t = np.linspace(0, 1, fs, endpoint=False)
     signal_input = s_t_prima
 
-    # T F
+    # Transformada de Fourier
     signal_fft = np.fft.fft(s_t_prima)
     frequencies = np.fft.fftfreq(len(s_t_prima), 1/fs)
-    filter_mask = np.where((frequencies >= -fcorte) & (frequencies <= fcorte), 1, 0)
+    
+    # Cambio en la máscara del filtro para obtener la banda superior
+    filter_mask = np.where((frequencies >= -fcorte) & (frequencies <= fcorte), 0, 1)
+    
     filtered_signal_fft = signal_fft * filter_mask
 
     s_t_filtrada = np.fft.ifft(filtered_signal_fft)
 
+    return s_t_filtrada
+
+
+def filtro_pasabajo1(s_t_prima, fcorte, fs):
+    t = np.linspace(1, 0, fs, endpoint=False)
+    signal_input = s_t_prima
+
+    # Transformada de Fourier
+    signal_fft = np.fft.fft(s_t_prima)
+    frequencies = np.fft.fftfreq(len(s_t_prima), 1/fs)
+    
+    # Cambio en la máscara del filtro para obtener la banda superior
+    filter_mask = np.where((frequencies >= -fcorte) & (frequencies <= fcorte), 1, 0)
+    
+    filtered_signal_fft = signal_fft * filter_mask
+
+    s_t_filtrada = np.fft.ifft(filtered_signal_fft)
 
     return s_t_filtrada
+
+
+
+
+def filtro_pasabanda(s_t_prima, f_paso_min, f_paso_max, fs):
+    t = np.linspace(0, 1, fs, endpoint=False)
+    signal_input = s_t_prima
+
+    # Transformada de Fourier
+    signal_fft = np.fft.fft(s_t_prima)
+    frequencies = np.fft.fftfreq(len(s_t_prima), 1/fs)
+    
+    # Crear una máscara del filtro pasabanda
+    filter_mask = np.where((frequencies >= f_paso_min) & (frequencies <= f_paso_max), 1, 0)
+    
+    filtered_signal_fft = signal_fft * filter_mask
+
+    s_t_filtrada = np.fft.ifft(filtered_signal_fft)
+
+    return s_t_filtrada
+
+
+def demultiplexar_y_amplificar(salidaTX,Frf, fs):
+    
+    salidaTX1 = filtro_pasabanda(salidaTX, 50000, 75000, samplerate_resampled)
+    salidaTX2 = filtro_pasabanda(salidaTX, -75000, -50000, samplerate_resampled)
+    salidaTXF = salidaTX1 + salidaTX2
+    plot_frequency_vs_psd(salidaTXF, samplerate_resampled)
+
+
+    Fif = 25000
+   
+    # Señal de tiempo
+    t =  np.arange(0, len(salidaTXF)/fs, 1/fs)
+    #plot_frequency_vs_psd(salidaTX, samplerate_resampled)
+    # FLO = 25 000 , c3 =50 000
+    # Oscilador local
+    oscilador_local_largo = np.cos(2 * np.pi * (Frf - Fif) * t)
+    #oscilador_local = oscilador_local_largo[:len(salidaTXF)]  # Recortar para que tenga el tamaño de salidaTX
+
+    # El mixer multiplica la señal recibida por el oscilador local
+    salida_mixer = (salidaTXF * oscilador_local_largo)
+    #plot_frequency_vs_psd(oscilador_local, samplerate_resampled)
+    #plot_frequency_vs_psd(oscilador_local_largo, samplerate_resampled)
+    # Aplicar filtro para solo tener la señal que se quiere
+    señal_demultiplexada = filtro_pasabanda(salida_mixer, 4000, 50000, samplerate_resampled)
+    señal_demultiplexada1 = filtro_pasabanda(salida_mixer, -50000, -4000, samplerate_resampled)
+
+    señal_demultiplexadaF = señal_demultiplexada + señal_demultiplexada1
+
+    señal_demultiplexadaF1 = filtro_pasabanda(señal_demultiplexadaF, 25000, 30000, samplerate_resampled)
+    señal_demultiplexadaF2 = filtro_pasabanda(señal_demultiplexadaF, -30000, -25000, samplerate_resampled)
+
+    señal_demultiplexadaFinal = señal_demultiplexadaF1 + señal_demultiplexadaF2
+    # Amplificar la señal demultiplexada
+    demultiplexada_amplificada = np.multiply(2, señal_demultiplexadaFinal)  # Amplificar por 2
+
+    # Devolver la señal demultiplexada amplificada
+    plot_frequency_vs_psd(demultiplexada_amplificada, samplerate_resampled)
+    
+    return demultiplexada_amplificada
+
+
+
+
 
 #TRANSMISOR SIMPLE
 def transmisor(x_t):
@@ -128,33 +214,6 @@ def receptor(s_t_prima, f_rf):
     m_t_reconstruida = s_t_prima  # eliminar cuando se tenga solución propuesta
     
     return m_t_reconstruida
-
-def demultiplexar_y_amplificar(salidaTX,Frf):
-    
-    Fif=3000   # en 2500 o menos parece haber aliasing
-   
-    # Señal de tiempo
-    t = np.linspace(0, 1, samplerate_resampled, endpoint=False)
-
-
-    # Oscilador local
-    oscilador_local_largo = np.cos(2 * np.pi * (Frf - Fif) * t)
-    oscilador_local = oscilador_local_largo[:len(salidaTX)]  # Recortar para que tenga el tamaño de salidaTX
-
-    # El mixer multiplica la señal recibida por el oscilador local
-    salida_mixer = np.multiply(salidaTX, oscilador_local)
-
-    # Aplicar filtro para solo tener la señal que se quiere
-    señal_demultiplexada = filtro_pasabajo(salida_mixer, Fif, samplerate_resampled)
-
-    # Amplificar la señal demultiplexada
-    demultiplexada_amplificada = np.multiply(2, señal_demultiplexada)  # Amplificar por 2
-
-    # Devolver la señal demultiplexada amplificada
-    return demultiplexada_amplificada
-
-
-
 
 
 #---------------------- Plots -------------------------
@@ -252,6 +311,8 @@ def ini_audio():
     #--------------------------leer tono desde archivo-------------------------------
     samplerate_tono, tono = wavfile.read(file_path_tono)
 
+
+
     # Sobremuestreo para evitar problemas de aliasing (de necesitarse)
     resampling_factor = 5                                            # antes era 4
     samples_new = len(tono) * resampling_factor
@@ -308,6 +369,7 @@ def ini_audio():
         print(opcion)
         if opcion == 0:
             x_t.append(tono_resampled)
+            
         elif opcion == 1:
             x_t.append(vowel_1_resampled)
         elif opcion == 2:
@@ -332,39 +394,58 @@ x_t, samplerate_resampled, tono_resampled = ini_audio()
 
 
 #---------------------- Graficar en PSD-------------------
-f_t = [10000, 20000, 30000]  # f_t debe ser una lista de 3 frecuencias de transmision
+f_t = [50000, 60000, 70000]  # f_t debe ser una lista de 3 frecuencias de transmision
 
 salidaTX = transmisorSSB(x_t, f_t, samplerate_resampled)
 s_t = transmisor(x_t)
 
-
-
+duration= 0.007
+#f_c = 10000
 
 # RESULTADO DE LA DEMULTIPLEXACION
 #f_t = [10000, 20000, 30000]
-señal_demultiplexada = demultiplexar_y_amplificar(salidaTX,30000)
+señal_demultiplexada = demultiplexar_y_amplificar(salidaTX, f_t[2], samplerate_resampled) ###### Cambiar f_t para que se seleccione automaticamente al realizar la selección de  vowel
 
-plot_frequency_vs_psd(señal_demultiplexada, samplerate_resampled)
-
+x_t_demod = demodSSB(señal_demultiplexada, 35000, samplerate_resampled)
+##En vez de 35k, variable que asigne una frecuencia a ""cancelar"" con el oscilador
 
 # Graficar señal del transmisor con ruido en el dominio de la frecuencia
 #plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
 
-plot_frequency_vs_psd(salidaTX, samplerate_resampled)
-f_c = 5000
-s_t = transmisor(x_t)
+#plot_frequency_vs_psd(salidaTX, samplerate_resampled)
+
 # Suponiendo que x_t_demod contiene las señales demoduladas
-duration= 0.007
+
 # Graficar la señal demodulada en el tiempo
 
 
+#zz = wavfile.read(x_t_demod)
+
+#plot_signal_vs_time(x_t, samplerate_resampled, duration)
+#plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
+
+#plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
+#(x_t_demod, samplerate_resampled)
 
 
-x_t_demod = demodSSB(salidaTX, f_c, samplerate_resampled)
-plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
+#plot_signal_vs_time(señal_demultiplexada, samplerate_resampled, duration)
+##plot_frequency_vs_psd(señal_demultiplexada, samplerate_resampled)
+
+
+
+
+
+
+
+
+
+#analytical_signal = hilbert(señal_demultiplexada)
+#shifted_signal = analytical_signal * np.exp(1j * 2 * np.pi * carrier_frequency * np.arange(len(received_signal)))
+
+
 
 ##Señal original
-#plot_signal_vs_time(, samplerate_resampled, duration)
+
 
 
 # Graficar la frecuencia vs PSD
@@ -383,12 +464,12 @@ plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
 
 # Sonido original########################################
 #print("Reproduciendo señal original:")
-#sd.play(x_t[1], samplerate=samplerate_resampled)
+#sd.play(x_t[0], samplerate=samplerate_resampled)
 #sd.wait()
 
 # Sonido con ruido
 #print("Reproduciendo señal con ruido:")
-#sd.play(s_t_prima, samplerate=samplerate_resampled)
+#sd.play(zz, samplerate=samplerate_resampled)
 #sd.wait()
 #########################################################
 

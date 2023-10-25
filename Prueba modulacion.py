@@ -17,7 +17,7 @@ from scipy.io import wavfile
 import numpy as np
 import matplotlib.pyplot as plt
 import sounddevice as sd
-
+from scipy.signal import resample
 # Definición de 3 bloques principales: TX, canal y RX
 
 def modSSB(x_t, f_c, fs):
@@ -30,6 +30,26 @@ def modSSB(x_t, f_c, fs):
     s_t = i_t + q_t  
     
     return s_t
+
+
+def demodSSB(s_t, f_c, fs, resampling_factor=5):
+    N = len(s_t)
+    t = np.arange(0, N / fs, 1 / fs)  # Generar vector de tiempo
+
+    # Generar la señal de portadora de la banda inferior
+    carrier = np.exp(2 * np.pi * f_c * t)  # Señal en banda inferior
+
+    # Demodulación de la banda inferior
+    i_demod = s_t * carrier
+
+    # Filtrar la señal demodulada (puedes usar un filtro pasabajo aquí)
+    i_demod_filtrada = filtro_pasabajo(i_demod, f_c, fs)
+
+    # Realizar resampling
+    i_demod_resampled = resample(i_demod_filtrada, N // resampling_factor)
+
+    return i_demod_resampled
+
 
 def transmisorSSB(x_t, f_c, fs):
     # x_t debe ser una lista con múltiples arrays (caso de 3 señales) o una sola (caso del tono)
@@ -49,6 +69,22 @@ def transmisor(x_t):
 
     return s_t
 
+
+def filtro_pasabajo(s_t_prima, fcorte, fs):
+
+    t = np.linspace(0, 1, fs, endpoint=False)
+    signal_input = s_t_prima
+
+    # T F
+    signal_fft = np.fft.fft(s_t_prima)
+    frequencies = np.fft.fftfreq(len(s_t_prima), 1/fs)
+    filter_mask = np.where((frequencies >= -fcorte) & (frequencies <= fcorte), 1, 0)
+    filtered_signal_fft = signal_fft * filter_mask
+
+    s_t_filtrada = np.fft.ifft(filtered_signal_fft)
+
+
+    return s_t_filtrada
 
 
 def canal(s_t):
@@ -147,7 +183,7 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
 
 # Inicio de ejecución
 #TONO
-file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/tono.wav"
+file_path = "C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/vowel_1.wav"
 
 #AUDIO_1
 #file_path = "F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/vowel_1.wav"
@@ -195,19 +231,19 @@ s_t_prima = canal(s_t)
 
 # Sonido original########################################
 print("Reproduciendo señal original:")
-sd.play(tono_resampled, samplerate=samplerate_resampled)
-sd.wait()
+##sd.play(tono_resampled, samplerate=samplerate_resampled)
+#sd.wait()
 
 # Sonido con ruido
 print("Reproduciendo señal con ruido:")
-sd.play(s_t_prima, samplerate=samplerate_resampled)
-sd.wait()
+#sd.play(s_t_prima, samplerate=samplerate_resampled)
+#sd.wait()
 #########################################################
 
 ###MODULACION
 
 # Llamar función de transmisor con portadora de 10 kHz
-s_t = transmisorSSB(x_t, 10000, samplerate_resampled)
+#s_t = transmisorSSB(x_t, 10000, samplerate_resampled)
 
 # Llamar función que modela el canal
 s_t_prima = canal(s_t)
@@ -218,17 +254,17 @@ m_t_reconstruida = receptor(s_t_prima, 1)  # ojo que es f_rf de prueba
 #CANAL
 # Graficar el ruido gaussiano en función del tiempo (0 a 0.007 segundos)
 #Se debe de cambiar a 1 segundo si se quiere ver o escuchar normal
-duration = 0.005  # Tiempo reducido
+duration = 0.007  # Tiempo reducido
 
-plot_gaussian_noise(0, 0.1, len(s_t_prima))#Ruido
+#plot_gaussian_noise(0, 0.1, len(s_t_prima))#Ruido
 
 
 
 # Graficar la señal original en función del tiempo (0 a 0.007 segundos)
-plot_signal_vs_time(tono_resampled, samplerate_resampled, duration)
+plot_signal_vs_time(s_t, samplerate_resampled, duration)
 
 # Graficar la señal con ruido en función del tiempo (0 a 0.007 segundos)
-plot_signal_vs_time(s_t_prima, samplerate_resampled, duration)
+#plot_signal_vs_time(s_t_prima, samplerate_resampled, duration)
 
 
 
@@ -248,14 +284,14 @@ def plot_mod(signal1, signal2, sample_rate, duration):
     plt.legend()
     plt.show()
 
-plot_mod(tono_resampled, s_t_prima, samplerate_resampled, duration)
+#plot_mod(tono_resampled, s_t_prima, samplerate_resampled, duration)
 ########################################################################################
-
-
+f_c = 10000
 
 # Graficar señal del transmisor con ruido en el dominio de la frecuencia
-plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
+#plot_frequency_vs_psd(s_t_prima, samplerate_resampled)
 ##########################################################################
 
+#x_t_demod = demodSSB(s_t_prima, f_c, samplerate_resampled)
 
 

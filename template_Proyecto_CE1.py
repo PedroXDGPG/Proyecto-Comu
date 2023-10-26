@@ -46,9 +46,6 @@ def modSSB(x_t, f_c, fs):
     return s_t
 
 
-
-
-
 def demodSSB(s_t, f_c, fs): 
     t = np.arange(0, len(s_t)/fs, 1/fs)  # Generar vector de tiempo
 
@@ -57,6 +54,7 @@ def demodSSB(s_t, f_c, fs):
 
     # Demodulación de la banda inferior
     i_demod = s_t * i_t
+
     # Realizar resampling
     i_demod_resampled = resample(i_demod, len(i_demod))
 
@@ -67,8 +65,6 @@ def demodSSB(s_t, f_c, fs):
     sfinalisima_amplificada = np.multiply(3, sfinalisima)
 
     return sfinalisima_amplificada
-
-
 
 
 def transmisorSSB(x_t, f_c, fs):
@@ -124,8 +120,6 @@ def filtro_pasabajo1(s_t_prima, fcorte, fs):
     return s_t_filtrada
 
 
-
-
 def filtro_pasabanda(s_t_prima, f_paso_min, f_paso_max, fs):
     t = np.linspace(0, 1, fs, endpoint=False)
     signal_input = s_t_prima
@@ -172,7 +166,7 @@ def demultiplexar_y_amplificar(salidaTX,Frf, fs):
 
     señal_demultiplexadaFinal = señal_demultiplexadaF1 + señal_demultiplexadaF2
     # Amplificar la señal demultiplexada
-    demultiplexada_amplificada = np.multiply(2, señal_demultiplexadaFinal)  # Amplificar por 2
+    demultiplexada_amplificada = np.multiply(2, señal_demultiplexadaFinal) 
 
     return demultiplexada_amplificada
 
@@ -348,7 +342,7 @@ def ini_audio():
     vowel_3_resampled = signal.resample(vowel_3, samples_new_3).astype(np.int16)
 
 
-    x_t = []  # Inicialmente, la lista está vacía
+    x_t = []  
     b_t = []
 
     # Pedir al usuario que ingrese las señales
@@ -409,38 +403,22 @@ f_t = [50000, 60000, 70000]  # f_t debe ser una lista de 3 frecuencias de transm
 salidaTX = transmisorSSB(x_t, f_t, samplerate_resampled)
 s_t = transmisor(x_t)
 
-duration= 0.007
+duration = 0.06
 
 
 # RESULTADO DE LA DEMULTIPLEXACION
-#f_t = [10000, 20000, 30000]
-señal_demultiplexada = demultiplexar_y_amplificar(salidaTX, b_t[0], samplerate_resampled) ###### Cambiar f_t para que se seleccione automaticamente al realizar la selección de  vowel
+señal_demultiplexada = demultiplexar_y_amplificar(salidaTX, b_t[0], samplerate_resampled) 
 
 x_t_demod = demodSSB(señal_demultiplexada, 25000, samplerate_resampled)
 
 
-
 plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
+
 plot_frequency_vs_psd(x_t_demod, samplerate_resampled)
 
 
-#---------------------- MUESTRA DE AUDIOS -------------------------
-# Llamar función de transmisor
-#s_t = transmisor(x_t)
 
-# Llamar función que modela el canal
-#s_t_prima = canal(s_t)
 
-# Sonido original########################################
-#print("Reproduciendo señal original:")
-#sd.play(x_t[0], samplerate=samplerate_resampled)
-#sd.wait()
-
-# Sonido con demodulada
-#print("Reproduciendo señal con ruido:")
-#sd.play(x_t_demod, samplerate=samplerate_resampled)
-#sd.wait()
-#########################################################
 
 
 

@@ -62,7 +62,7 @@ def demodSSB(s_t, f_c, fs):
     s2 = filtro_pasabanda(i_demod_resampled, -3000, 0, samplerate_resampled)
 
     sfinalisima = s1 + s2
-    sfinalisima_amplificada = np.multiply(3, sfinalisima)
+    sfinalisima_amplificada = sfinalisima*3
 
     return sfinalisima_amplificada
 
@@ -166,7 +166,7 @@ def demultiplexar_y_amplificar(salidaTX,Frf, fs):
 
     señal_demultiplexadaFinal = señal_demultiplexadaF1 + señal_demultiplexadaF2
     # Amplificar la señal demultiplexada
-    demultiplexada_amplificada = np.multiply(2, señal_demultiplexadaFinal) 
+    demultiplexada_amplificada = señal_demultiplexadaFinal*2
 
     return demultiplexada_amplificada
 
@@ -268,8 +268,8 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
     plt.tight_layout()
     
     # Calcula BW
-    bandwidth = calculate_bandwidth(frequencies, psd)
-    print(f"Ancho de banda Bilateral: {bandwidth} Hz.")
+    #bandwidth = calculate_bandwidth(frequencies, psd)
+    #print(f"Ancho de banda Bilateral: {bandwidth} Hz.")
     
     plt.show()
 
@@ -280,7 +280,7 @@ def plot_frequency_vs_psd(s_t_prima, samplerate_resampled):
 #---------------------- Audios -------------------------
 def ini_audio():
     #Ruta de archivos
-    path="C:/Users/bmont/OneDrive/Documentos/2023 Segundo Semestre/Comu 1/datos_audio/datos_audio/"
+    path="F:/TEC/tec/VIII Semestre/Comu/Proyecto/Etapa 1/datos_audio/"
     #TONO
     file_path_tono = path+"tono.wav"
 
@@ -344,7 +344,7 @@ def ini_audio():
 
     x_t = []  
     b_t = []
-
+    v_rs=[samplerate_resampled_1,samplerate_resampled_2,samplerate_resampled_3]
     # Pedir al usuario que ingrese las señales
     print("Las opciones para la entrada de la transmisión son las siguientes:")
     print("0. Tono")
@@ -387,27 +387,26 @@ def ini_audio():
 
     print(f"Se han agregado las señales seleccionadas a x_t:")
 
-    return x_t, b_t, samplerate_resampled_tono,tono_resampled
+    return x_t, b_t, samplerate_resampled_tono,tono_resampled,v_rs
 
 
 # Inicio de ejecución
 
 #---------------------- Prueba TX -------------------------
-x_t, b_t, samplerate_resampled, tono_resampled = ini_audio()
-
+x_t, b_t, samplerate_resampled, tono_resampled,v_rs = ini_audio()
 
 
 #---------------------- Graficar en PSD-------------------
 f_t = [50000, 60000, 70000]  # f_t debe ser una lista de 3 frecuencias de transmision
 
 salidaTX = transmisorSSB(x_t, f_t, samplerate_resampled)
-s_t = transmisor(x_t)
+s_t = canal(salidaTX)
 
 duration = 0.06
 
 
 # RESULTADO DE LA DEMULTIPLEXACION
-señal_demultiplexada = demultiplexar_y_amplificar(salidaTX, b_t[0], samplerate_resampled) 
+señal_demultiplexada = demultiplexar_y_amplificar(s_t, b_t[0], samplerate_resampled) 
 
 x_t_demod = demodSSB(señal_demultiplexada, 25000, samplerate_resampled)
 
@@ -415,6 +414,36 @@ x_t_demod = demodSSB(señal_demultiplexada, 25000, samplerate_resampled)
 plot_signal_vs_time(x_t_demod, samplerate_resampled, duration)
 
 plot_frequency_vs_psd(x_t_demod, samplerate_resampled)
+
+
+#---------------------- MUESTRA DE AUDIOS -------------------------
+# Llamar función de transmisor
+#s_t = transmisor(x_t)
+
+# Llamar función que modela el canal
+#s_t_prima = canal(s_t)
+
+# Sonido original########################################
+#print("Reproduciendo señal original:")
+#sd.play(x_t[0], v_rs[0])
+#sd.wait()
+import sounddevice as sd
+
+# Assuming x_t_demod is a NumPy array of complex numbers
+# Convert to real and imaginary parts
+x_real = np.real(x_t_demod)
+x_imag = np.imag(x_t_demod)
+
+# Stack the real and imaginary parts to form stereo channels
+stereo_audio = np.column_stack((x_real, x_imag))
+
+plot_signal_vs_time(stereo_audio, samplerate_resampled, duration)
+plot_frequency_vs_psd(stereo_audio, samplerate_resampled)
+# Play the stereo audio
+sd.play(stereo_audio,v_rs[0])
+sd.wait()  # Wait for the audio to finish playing
+
+#########################################################
 
 
 

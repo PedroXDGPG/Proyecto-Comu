@@ -137,34 +137,31 @@ def canal(s_t):
 
 
 
-def calcular_snr_entrada_salida(senal_transmitida, senal_canal, senal_recibida, samplerate_resampled):
-    # Calcula la PSD de la señal de entrada
-    psd_senal_transmitida = calcular_psd(senal_transmitida, samplerate_resampled)
+def calcular_snr_entrada_salida(senal_transmitida, senal_canal, senal_recibida, ancho_de_banda_mensaje):
+    # Calcula la potencia promedio de la señal transmitida
+    potencia_senal_transmitida = 10 * np.log10(np.mean(np.abs(senal_transmitida)**2))
 
-    # Calcula la PSD de la señal en el canal
-    psd_senal_canal = calcular_psd(senal_canal, samplerate_resampled)
+    # Calcula la potencia promedio del ruido filtrado en el canal
+    potencia_ruido_filtrado = 10 * np.log10(np.mean(np.abs(senal_canal - senal_transmitida)**2))
 
-    # Calcula la PSD del ruido en la canal
-    psd_senal_ruido_canal = psd_senal_canal - psd_senal_transmitida
+    # Calcula SNR de entrada (SNRi)
+    snr_entrada = potencia_senal_transmitida - potencia_ruido_filtrado
 
-    # Calcula la PSD del ruido en la señal de entrada
-    psd_senal_ruido_entrada = psd_senal_transmitida - psd_senal_canal
+    # Calcula la potencia promedio del mensaje demodulado
+    potencia_mensaje_demodulado = 10 * np.log10(np.mean(np.abs(senal_recibida)**2))
 
-    # Calcula la PSD de la señal de salida (recibida)
-    psd_senal_recibida = calcular_psd(senal_recibida, samplerate_resampled)
+    # Calcula la potencia promedio del ruido en la salida del receptor
+    potencia_ruido_salida = 10 * np.log10(np.mean(np.abs(senal_recibida - senal_transmitida)**2))
 
-    # Calcula la PSD del ruido en la señal de salida
-    psd_senal_ruido_salida = psd_senal_canal - psd_senal_recibida
+    # Calcula SNR de salida (SNRo)
+    snr_salida = potencia_mensaje_demodulado - potencia_ruido_salida
 
-
-    # Calcula el SNR en términos de PSD
-    snr_entrada = np.mean(psd_senal_transmitida) / np.mean(psd_senal_ruido_entrada)
-    snr_canal = np.mean(psd_senal_canal) / np.mean(psd_senal_ruido_entrada)  # Usar la PSD del ruido de entrada
-    snr_salida = np.mean(psd_senal_recibida) / np.mean(psd_senal_ruido_salida)
+    # Calcula SNR del canal (SNRc) considerando el ancho de banda del mensaje
+    snr_canal = 10 * np.log10(potencia_senal_transmitida) - 10 * np.log10(potencia_ruido_filtrado) - 10 * np.log10(ancho_de_banda_mensaje)
 
     return snr_entrada, snr_canal, snr_salida
 
-# Resto del código...
+
 
 
 # Función para calcular la PSD (Densidad Espectral de Potencia)
@@ -176,7 +173,10 @@ def calcular_psd(senal, samplerate):
 
     return psd
 
-
+ancho_de_banda_tono = 500  # Hz
+ancho_de_banda_vowel1 = 363  # Hz
+ancho_de_banda_vowel2 = 430  # Hz
+ancho_de_banda_vowel3 = 1170  # Hz
 
 
 ##FILTROS
@@ -523,11 +523,11 @@ sd.wait()  # Wait for the audio to finish playing
 
 
 # Calcular la SNR de entrada y salida
-snr_entrada,snr_canal, snr_salida = calcular_snr_entrada_salida(salidaTX, s_t_prima, x_t_demod, samplerate_resampled)
+snr_entrada,snr_canal, snr_salida = calcular_snr_entrada_salida(salidaTX, s_t_prima, x_t_demod, ancho_de_banda_vowel1)
 
-print("SNR de entrada :", snr_entrada)
-print("SNR de salida :", snr_salida)
-print("SNR del canal :", snr_canal)
+print("SNR de entrada dB :", snr_entrada)
+print("SNR de salida dB :", snr_salida)
+print("SNR del canal dB :", snr_canal)
 
 
 

@@ -172,6 +172,26 @@ def demultiplexar_y_amplificar(salidaTX,Frf, fs):
 
 
 
+def calcular_SNR_entrada_salida(senal_modulada_con_ruido, senal_modulada_sin_ruido, senal_demodulada):
+    # Cálculo de la potencia promedio de la señal modulada con ruido
+    potencia_senal_modulada_con_ruido = np.mean(np.abs(senal_modulada_con_ruido) ** 2)
+
+    # Cálculo de la potencia promedio de la señal modulada sin ruido
+    potencia_senal_modulada_sin_ruido = np.mean(np.abs(senal_modulada_sin_ruido) ** 2)
+
+    # Cálculo de la potencia promedio de la señal demodulada
+    potencia_senal_demodulada = np.mean(np.abs(senal_demodulada) ** 2)
+
+    # Calcula la potencia del ruido a la salida como la diferencia entre las potencias
+    potencia_ruido_salida = np.abs(potencia_senal_modulada_con_ruido - potencia_senal_modulada_sin_ruido)
+
+    # Calcula SNR de entrada en dB
+    snr_entrada_db = 10 * np.log10(np.abs(potencia_senal_modulada_sin_ruido) / potencia_ruido_salida)
+
+    # Calcula SNR de salida en dB
+    snr_salida_db = 10 * np.log10(np.abs(potencia_senal_demodulada) / potencia_ruido_salida)
+
+    return snr_entrada_db, snr_salida_db
 
 
 #TRANSMISOR SIMPLE
@@ -444,7 +464,10 @@ sd.play(stereo_audio,v_rs[0])
 sd.wait()  # Wait for the audio to finish playing
 
 #########################################################
+snr_entrada, snr_salida = calcular_SNR_entrada_salida(s_t, salidaTX, x_t_demod)
 
+print(f"SNR de entrada (dB): {snr_entrada}")
+print(f"SNR de salida (dB): {snr_salida}")
 
 
 
